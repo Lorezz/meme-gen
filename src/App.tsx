@@ -3,11 +3,13 @@ import Canvas from "./components/Canvas.tsx";
 function App() {
   const [uploadedImage, setUploadedImage] =
     React.useState<HTMLImageElement | null>(null);
-  const [topText, setTopText] = React.useState<string>("");
-  const [bottomText, setBottomText] = React.useState<string>("");
+  const [text, setText] = React.useState<string>("");
+  const [newText, setNewText] = React.useState<string>("");
+
   const [width, setWidth] = React.useState<number>(300);
   const [height, setHeight] = React.useState<number>(300);
   const [downloadTrigger, setDownloadTrigger] = React.useState<string>("");
+  const [resetTrigger, setResetTrigger] = React.useState<number>(0);
 
   // Load the image onto the canvas
   function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -23,47 +25,23 @@ function App() {
         setUploadedImage(img);
       };
     };
-
     reader.readAsDataURL(file!);
   }
-
-  // Draw image and text on canvas
-
-  function draw(ctx: CanvasRenderingContext2D) {
-    // Clear canvas and set canvas dimensions to fit the image
-    ctx.clearRect(0, 0, width, height);
-    if (uploadedImage) ctx.drawImage(uploadedImage, 0, 0, width, height);
-
-    // Set text styles
-    ctx.font = "30px Impact";
-    ctx.fillStyle = "white";
-    ctx.strokeStyle = "black";
-    ctx.lineWidth = 2;
-    ctx.textAlign = "center";
-
-    if (topText) {
-      // Draw top text
-      ctx.fillText(topText, width / 2, 50);
-      ctx.strokeText(topText, width / 2, 50);
-    }
-    if (bottomText) {
-      // Draw bottom text
-      ctx.fillText(bottomText, width / 2, height - 20);
-      ctx.strokeText(bottomText, width / 2, height - 20);
-    }
+  function addNewText() {
+    setNewText(text);
+    setText("");
   }
-
   function downloadMeme() {
     setDownloadTrigger(`meme-${Date.now()}.png`);
   }
 
   return (
     <div
-      className='p-10 flex gap-4s flex-col justify-center
+      className='p-10 flex gap-4 flex-col justify-center
       items-center'
     >
-      <div className='flex gap-4 flex-col justify-center items-center'>
-        <div className='flex flex-col justify-center items-center'>
+      <div className='flex gap-4 flex-col  justify-center items-center'>
+        <div className='flex  gap-4  flex-row justify-center items-center'>
           <label className='label'>Upload image</label>
           <input
             className='file-input'
@@ -73,40 +51,32 @@ function App() {
           />
         </div>
         {uploadedImage && (
-          <>
-            <div>
-              <label className='label'>Top Text</label>
-              <input
-                className='input'
-                type='text'
-                onChange={(e) => setTopText(e.target.value)}
-              />
-            </div>
-            <div>
-              <label className='label'>Bottom Text</label>
-              <input
-                className='input'
-                type='text'
-                onChange={(e) => setBottomText(e.target.value)}
-              />
-            </div>
-          </>
+          <div className='pt-5 flex gap-4  flex-row justify-center items-center'>
+            <label className='label'>Text</label>
+            <input
+              className='input'
+              value={text}
+              type='text'
+              onChange={(e) => setText(e.target.value)}
+            />
+            <button
+              className='btn btn-sm uppercase'
+              onClick={() => addNewText()}
+            >
+              add text
+            </button>
+          </div>
         )}
       </div>
-      <div className='py-10'>
-        <p>
-          pic size:{width}x{height}
-        </p>
-        <Canvas
-          draw={draw}
-          width={width}
-          height={height}
-          downloadTrigger={downloadTrigger}
-        />
-      </div>
-      <div>
+      <div className='pt-5'>
         {uploadedImage && (
-          <div>
+          <div className='flex gap-4'>
+            <button
+              className='btn  uppercase'
+              onClick={() => setResetTrigger((c) => c + 1)}
+            >
+              reset
+            </button>
             <button
               className='btn btn-primary uppercase'
               onClick={() => downloadMeme()}
@@ -115,6 +85,19 @@ function App() {
             </button>
           </div>
         )}
+      </div>
+      <div className='pt-5'>
+        <p>
+          pic size:{width}x{height}
+        </p>
+        <Canvas
+          image={uploadedImage}
+          newText={newText}
+          width={width}
+          height={height}
+          resetTrigger={resetTrigger}
+          downloadTrigger={downloadTrigger}
+        />
       </div>
     </div>
   );
