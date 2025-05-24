@@ -143,7 +143,7 @@ export default function Canvas({
   // iterate through texts[] and see if the user
   // mousedown'ed on one of them
   // If yes, set the selectedText to the index of that text
-  function handleMouseDown(e) {
+  function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     e.preventDefault();
     const startValue = { x: e.clientX - offset.x, y: e.clientY - offset.y };
     setStart(startValue);
@@ -156,13 +156,13 @@ export default function Canvas({
   }
 
   // done dragging
-  function handleMouseUp(e) {
+  function handleMouseUp(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     e.preventDefault();
     setSelectedText(-1);
   }
 
   // also done dragging
-  function handleMouseOut(e) {
+  function handleMouseOut(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     e.preventDefault();
     setSelectedText(-1);
   }
@@ -171,7 +171,7 @@ export default function Canvas({
   // calc how far the mouse has been dragged since
   // the last mousemove event and move the selected text
   // by that distance
-  function handleMouseMove(e) {
+  function handleMouseMove(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     if (selectedText < 0) {
       return;
     }
