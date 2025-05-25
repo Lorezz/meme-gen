@@ -1,5 +1,6 @@
 import React from "react";
 import Canvas from "./components/Canvas.tsx";
+import ChooseMeme from "./components/ChooseMeme.tsx";
 function App() {
   const [uploadedImage, setUploadedImage] =
     React.useState<HTMLImageElement | null>(null);
@@ -49,6 +50,9 @@ function App() {
             accept='image/jpg,image/png,image/webp'
             onChange={(e) => handleUpload(e)}
           />
+        </div>
+        <div>
+          <ChooseMeme handleSelect={(item) => console.log(item)} />
         </div>
         {uploadedImage && (
           <div className='pt-5 flex gap-4  flex-row justify-center items-center'>
