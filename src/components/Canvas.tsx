@@ -53,7 +53,7 @@ export default function Canvas({
     if (downloadTrigger) {
       const link = document.createElement("a");
       link.download = downloadTrigger;
-      link.href = canvas.current!.toDataURL("image/png");
+      link.href = canvas.current!.toDataURL();
       link.click();
     }
   }, [downloadTrigger]);
@@ -76,7 +76,7 @@ export default function Canvas({
     const text = {
       text: newText,
       x: 100,
-      y: texts.length * 50 + 50,
+      y: texts.length * 100 + 100,
       width,
       height,
     };
@@ -87,10 +87,12 @@ export default function Canvas({
 
   function checkOffsets(c: HTMLCanvasElement) {
     if (c.offsetLeft - offset.x != 0 || c.offsetTop - offset.y != 0) {
-      setOffset({
+      const value = {
         x: c.offsetLeft,
         y: c.offsetTop,
-      });
+      };
+      console.log("set offset", value);
+      setOffset(value);
     }
   }
 
@@ -103,6 +105,7 @@ export default function Canvas({
       c.width = width * ratio;
       c.height = height * ratio;
       context!.scale(ratio, ratio);
+      console.log("RESIZE");
       return true;
     }
     return false;
@@ -124,19 +127,26 @@ export default function Canvas({
     for (let i = 0; i < texts.length; i++) {
       const text = texts[i];
       ctx.fillText(text.text, text.x, text.y);
+      ctx.strokeStyle = "black";
       ctx.strokeText(text.text, text.x, text.y);
+
+      // ctx.strokeStyle = "blue";
+      // ctx.strokeRect(start.x, start.y, 100, 100);
     }
   }
 
   // test if x,y is inside the bounding box of texts[textIndex]
   function textHittest(x: number, y: number, textIndex: number) {
     const text = texts[textIndex];
-    return (
-      x >= text.x &&
-      x <= text.x + text.width &&
+
+    const result =
+      x >= text.x - text.width / 2 &&
+      x <= text.x + text.width / 2 &&
       y >= text.y - text.height &&
-      y <= text.y
-    );
+      y <= text.y;
+
+    console.log("textHittest", text, "?", result);
+    return result;
   }
 
   // handle mousedown events
@@ -186,7 +196,6 @@ export default function Canvas({
     const text = texts[selectedText];
     text.x += dx;
     text.y += dy;
-    // draw();
   }
 
   return (

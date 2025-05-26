@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import "../styles/gallery.css";
 
 export type MemeResult = {
   id: string;
@@ -11,9 +12,13 @@ export type MemeResult = {
 };
 export type ChooseMemeProps = {
   handleSelect: (item: MemeResult) => void;
+  selected?: MemeResult;
 };
 
-export default function ChooseMeme({ handleSelect }: ChooseMemeProps) {
+export default function ChooseMeme({
+  handleSelect,
+  selected,
+}: ChooseMemeProps) {
   const [images, setImages] = useState<MemeResult[]>([]);
 
   async function fetchMemeSourceImages() {
@@ -27,21 +32,29 @@ export default function ChooseMeme({ handleSelect }: ChooseMemeProps) {
   }, []);
 
   return (
-    <div className='w-[80vw] h-[200px] bg-base-300 overflow-auto'>
-      {images?.map((img) => (
-        <span
-          key={img.id}
-          style={{ width: 200, height: 150 }}
-          onClick={() => handleSelect(img)}
-        >
+    // <div className='block bg-base-300 m-4 p-5 w-[800px] h-[200px] overflow-hidden'>
+    //   <div style={{ overflow: "auto", width: "100%", height: "100%" }}>
+    <div className='image-container'>
+      <div className='scrollable-images'>
+        {images?.map((img) => (
           <img
+            key={img.id}
+            onClick={() => handleSelect(img)}
+            className={`${
+              selected?.id === img.id ? "border-2 border-primary" : ""
+            }`}
             src={img.url}
-            style={{ maxWidth: "100%", maxHeight: "100%" }}
+            style={{
+              display: "inline-block",
+              width: 200,
+              height: 150,
+              objectFit: "cover",
+            }}
             alt={img.name}
             title={img.name}
           />
-        </span>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
