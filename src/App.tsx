@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useEffect } from "react";
 import Canvas from "./components/Canvas.tsx";
 import ChooseMeme, { type MemeResult } from "./components/ChooseMeme.tsx";
+import useElementSize, { type ReturnType } from "./hooks/useElementSize.ts";
 
 function App() {
   const [uploadedImage, setUploadedImage] =
@@ -8,13 +9,33 @@ function App() {
   const [text, setText] = React.useState<string>("");
   const [newText, setNewText] = React.useState<string>("");
 
-  const [width, setWidth] = React.useState<number>(300);
-  const [height, setHeight] = React.useState<number>(300);
+  const [fontSize, setFontsize] = React.useState<number>(40);
+  const [width, setWidth] = React.useState<number>(800);
+  const [height, setHeight] = React.useState<number>(600);
   const [downloadTrigger, setDownloadTrigger] = React.useState<string>("");
   const [resetTrigger, setResetTrigger] = React.useState<number>(0);
   const [selected, setSelected] = React.useState<MemeResult | undefined>(
     undefined
   );
+  const [size, ref]: ReturnType = useElementSize();
+
+  function getRatio(imgWidth: number, imgHeight: number) {
+    const ctxWidth = size.width,
+      ctxHeight = size.height;
+
+    const ratioWidth = imgWidth / ctxWidth,
+      ratioHeight = imgHeight / ctxHeight;
+
+    const ratioAspect = ratioHeight < ratioWidth ? ratioWidth : ratioHeight;
+
+    const newWidth = imgWidth / ratioAspect,
+      newHeight = imgHeight / ratioAspect;
+
+    setWidth(newWidth);
+    setHeight(newHeight);
+
+    return [newWidth, newHeight];
+  }
 
   // Load the image onto the canvas
   function handleUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -22,38 +43,41 @@ function App() {
     const reader = new FileReader();
 
     reader.onload = (e) => {
-      const img = new Image();
-      img.src = e?.target?.result as string;
-      img.crossOrigin = "anonymous";
+      const dataUrl = e?.target?.result as string;
+      const img = new Image(size.width, size.height);
+      img.src = dataUrl;
       img.onload = () => {
-        setWidth(img.width);
-        setHeight(img.height);
-        setUploadedImage(img);
+        const [w, h] = getRatio(img.width, img.height);
+        const pic = new Image(w, h);
+        pic.src = dataUrl;
+        setUploadedImage(pic);
+        setResetTrigger((p) => p + 1);
       };
     };
     reader.readAsDataURL(file!);
+    setSelected(undefined);
   }
 
+  useEffect(() => {
+    setWidth(size.width);
+    setHeight(size.height);
+  }, [size.width, size.height]);
+
   async function chooseImage(item: MemeResult) {
-    console.log("Fetching image...");
     const response = await fetch(item.url);
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
     const imageBlob = await response.blob();
-    console.log("Image blob received:", imageBlob);
-
-    // Create an object URL for the blob
     const imageObjectURL = URL.createObjectURL(imageBlob);
-
-    const img = new Image();
+    const [w, h] = getRatio(item.width, item.height);
+    const img = new Image(w, h);
     img.src = imageObjectURL;
     img.onload = () => {
-      setWidth(img.width);
-      setHeight(img.height);
       setUploadedImage(img);
     };
     setSelected(item);
+    setResetTrigger((p) => p + 1);
   }
 
   function addNewText() {
@@ -66,17 +90,14 @@ function App() {
   }
 
   return (
-    <div
-      className='p-10 flex gap-4 flex-col justify-center
-      items-center'
-    >
-      <div>
+    <div className='p-10'>
+      <div className=''>
         <ChooseMeme
           handleSelect={(item) => chooseImage(item)}
           selected={selected}
         />
       </div>
-      <div className='flex gap-4 flex-col  justify-center items-center'>
+      <div className='flex gap-4 flex-col  justify-center items-center '>
         <div className='flex  gap-4  flex-row justify-center items-center'>
           <label className='label'>Upload image</label>
           <input
@@ -86,54 +107,72 @@ function App() {
             onChange={(e) => handleUpload(e)}
           />
         </div>
-        {uploadedImage && (
-          <div className='pt-5 flex gap-4  flex-row justify-center items-center'>
-            <label className='label'>Text</label>
-            <input
-              className='input'
-              value={text}
-              type='text'
-              onChange={(e) => setText(e.target.value)}
+        <div className='flex gap-4 flex-row justify-center items-center'>
+          <label className='label'>Font Size</label>
+          <input
+            type='range'
+            min={15}
+            max={100}
+            value={fontSize}
+            className='range'
+            onChange={(e) => setFontsize(parseInt(e.target.value))}
+          />
+          {fontSize}
+        </div>
+        <div className='flex gap-4 flex-row justify-center items-center'>
+          <label className='label'>Text</label>
+          <input
+            className='input'
+            value={text}
+            type='text'
+            onChange={(e) => setText(e.target.value)}
+          />
+
+          <button className='btn btn-sm uppercase' onClick={() => addNewText()}>
+            add text
+          </button>
+        </div>
+      </div>
+      <div className='py-5'>
+        <div className='flex gap-4 justify-center items-center'>
+          <button
+            className='btn  uppercase'
+            onClick={() => setResetTrigger((c) => c + 1)}
+          >
+            reset
+          </button>
+          <button
+            className='btn btn-primary uppercase'
+            onClick={() => downloadMeme()}
+          >
+            download
+          </button>
+        </div>
+      </div>
+
+      <div className='  flex w-full items-center justify-center'>
+        <div
+          ref={ref}
+          className=''
+          style={{
+            width: 800,
+            height: 600,
+            maxWidth: "100%",
+            maxHeight: "100%",
+          }}
+        >
+          <center>
+            <Canvas
+              fontSize={fontSize}
+              image={uploadedImage}
+              newText={newText}
+              width={width}
+              height={height}
+              resetTrigger={resetTrigger}
+              downloadTrigger={downloadTrigger}
             />
-            <button
-              className='btn btn-sm uppercase'
-              onClick={() => addNewText()}
-            >
-              add text
-            </button>
-          </div>
-        )}
-      </div>
-      <div className='pt-5'>
-        {uploadedImage && (
-          <div className='flex gap-4'>
-            <button
-              className='btn  uppercase'
-              onClick={() => setResetTrigger((c) => c + 1)}
-            >
-              reset
-            </button>
-            <button
-              className='btn btn-primary uppercase'
-              onClick={() => downloadMeme()}
-            >
-              download
-            </button>
-          </div>
-        )}
-      </div>
-      <div className='pt-5'>
-        <p>
-          pic size:{width}x{height}
-        </p>
-        <Canvas
-          image={uploadedImage}
-          newText={newText}
-          width={width}
-          height={height}
-          resetTrigger={resetTrigger}
-          downloadTrigger={downloadTrigger}
-        />
+          </center>
+        </div>
       </div>
     </div>
   );

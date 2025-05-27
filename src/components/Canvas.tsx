@@ -2,6 +2,7 @@ import { useEffect, useState, useRef } from "react";
 
 type CanvasProps = {
   image: CanvasImageSource | null;
+  fontSize: number;
   height: number;
   width: number;
   downloadTrigger: string;
@@ -15,12 +16,14 @@ type TextProps = {
   y: number;
   width: number;
   height: number;
+  fontSize: number;
 };
 
 export default function Canvas({
   image,
   height,
   width,
+  fontSize,
   downloadTrigger,
   resetTrigger,
   newText,
@@ -66,19 +69,20 @@ export default function Canvas({
     if (!newText || !canvas.current) return;
 
     // const ctx = canvas.current!.getContext("2d");
-    ctx!.font = "50px Impact";
+    ctx!.font = fontSize + "px Impact";
     ctx!.fillStyle = "white";
     ctx!.strokeStyle = "black";
     ctx!.lineWidth = 2;
     ctx!.textAlign = "center";
     const width = ctx!.measureText(newText).width * 2;
-    const height = 50;
+    const height = fontSize;
     const text = {
       text: newText,
       x: 100,
       y: texts.length * 100 + 100,
       width,
       height,
+      fontSize,
     };
     setTexts((prev) => {
       return [...prev, text];
@@ -91,7 +95,7 @@ export default function Canvas({
         x: c.offsetLeft,
         y: c.offsetTop,
       };
-      console.log("set offset", value);
+      // console.log("set offset", value);
       setOffset(value);
     }
   }
@@ -117,15 +121,14 @@ export default function Canvas({
     ctx.clearRect(0, 0, width, height);
     if (image) ctx.drawImage(image, 0, 0, width, height);
 
-    // Set text styles
-    // ctx.font = "30px Impact";
-    // ctx.fillStyle = "white";
-    // ctx.strokeStyle = "black";
-    // ctx.lineWidth = 2;
-    // ctx.textAlign = "center";
+    ctx!.fillStyle = "white";
+    ctx!.strokeStyle = "black";
+    ctx!.lineWidth = 2;
+    ctx!.textAlign = "center";
 
     for (let i = 0; i < texts.length; i++) {
       const text = texts[i];
+      ctx!.font = text.fontSize + "px Impact";
       ctx.fillText(text.text, text.x, text.y);
       ctx.strokeStyle = "black";
       ctx.strokeText(text.text, text.x, text.y);
@@ -145,7 +148,7 @@ export default function Canvas({
       y >= text.y - text.height &&
       y <= text.y;
 
-    console.log("textHittest", text, "?", result);
+    // console.log("textHittest", text, "?", result);
     return result;
   }
 
