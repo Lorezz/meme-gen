@@ -9,7 +9,7 @@ function App() {
   const [text, setText] = React.useState<string>("");
   const [newText, setNewText] = React.useState<string>("");
 
-  const [fontSize, setFontsize] = React.useState<number>(40);
+  const [fontSize, setFontsize] = React.useState<number>(30);
   const [width, setWidth] = React.useState<number>(800);
   const [height, setHeight] = React.useState<number>(600);
   const [downloadTrigger, setDownloadTrigger] = React.useState<string>("");
@@ -153,7 +153,7 @@ function App() {
       <div className='  flex w-full items-center justify-center'>
         <div
           ref={ref}
-          className=''
+          className='bg-base-100'
           style={{
             width: 800,
             height: 600,

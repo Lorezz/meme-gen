@@ -79,7 +79,7 @@ export default function Canvas({
     const text = {
       text: newText,
       x: 100,
-      y: texts.length * 100 + 100,
+      y: 100,
       width,
       height,
       fontSize,
@@ -152,10 +152,6 @@ export default function Canvas({
     return result;
   }
 
-  // handle mousedown events
-  // iterate through texts[] and see if the user
-  // mousedown'ed on one of them
-  // If yes, set the selectedText to the index of that text
   function handleMouseDown(e: React.MouseEvent<HTMLCanvasElement, MouseEvent>) {
     e.preventDefault();
     const startValue = { x: e.clientX - offset.x, y: e.clientY - offset.y };
@@ -166,6 +162,27 @@ export default function Canvas({
         setSelectedText(i);
       }
     }
+  }
+
+  function handleTouchStart(e: React.TouchEvent<HTMLCanvasElement>) {
+    e.preventDefault();
+    const startValue = {
+      x: e.touches[0].clientX - offset.x,
+      y: e.touches[0].clientY - offset.y,
+    };
+    setStart(startValue);
+    // Put your mousedown stuff here
+    for (let i = 0; i < texts.length; i++) {
+      if (textHittest(startValue.x, startValue.y, i)) {
+        setSelectedText(i);
+      }
+    }
+  }
+
+  // done dragging
+  function handleTouchEnd(e: React.TouchEvent<HTMLCanvasElement>) {
+    e.preventDefault();
+    setSelectedText(-1);
   }
 
   // done dragging
@@ -201,6 +218,23 @@ export default function Canvas({
     text.y += dy;
   }
 
+  function handleTouchMove(e: React.TouchEvent<HTMLCanvasElement>) {
+    if (selectedText < 0) {
+      return;
+    }
+    e.preventDefault();
+    const mouseX = e.touches[0].clientX - offset.x;
+    const mouseY = e.touches[0].clientY - offset.y;
+
+    // Put your mousemove stuff here
+    const dx = mouseX - start.x;
+    const dy = mouseY - start.y;
+    setStart({ x: mouseX, y: mouseY });
+    const text = texts[selectedText];
+    text.x += dx;
+    text.y += dy;
+  }
+
   return (
     <canvas
       className='bg-base-300'
@@ -211,6 +245,9 @@ export default function Canvas({
       onMouseUp={(e) => handleMouseUp(e)}
       onMouseOut={(e) => handleMouseOut(e)}
       onMouseMove={(e) => handleMouseMove(e)}
+      onTouchStart={(e) => handleTouchStart(e)}
+      onTouchEnd={(e) => handleTouchEnd(e)}
+      onTouchMove={(e) => handleTouchMove(e)}
     />
   );
 }
